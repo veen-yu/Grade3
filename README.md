@@ -1,0 +1,727 @@
+[index.html](https://github.com/user-attachments/files/28576092/index.html)
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Vocabulary Quiz Game</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Contrail+One&family=Montserrat:wght@800;900&family=Orbitron:wght@800&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- CSS Reset & Variables --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        :root {
+            --font-title: 'Montserrat', 'Orbitron', sans-serif;
+            --font-ui: 'Contrail One', cursive;
+            --transition-speed: 0.3s;
+            --current-bg: #92A8D1;
+        }
+
+        body {
+            font-family: var(--font-ui);
+            background-color: var(--current-bg);
+            transition: background-color 0.5s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            color: #333333;
+        }
+
+        /* --- Device Layout Optimization --- */
+        /* Targets iPad Landscape (1024x768) and Desktop (1920x1080) scales dynamically */
+        .game-container {
+            width: 100%;
+            height: 100vh;
+            max-width: 1920px;
+            max-height: 1080px;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        @media (min-width: 1024px) and (min-height: 768px) {
+            .app-card {
+                width: 900px;
+                height: 650px;
+                font-size: 1.25rem;
+            }
+            h1 { font-size: 3.5rem !important; }
+        }
+
+        @media (min-width: 1920px) and (min-height: 1080px) {
+            .app-card {
+                width: 1400px;
+                height: 850px;
+                font-size: 1.75rem;
+            }
+            h1 { font-size: 5rem !important; }
+        }
+
+        /* --- Universal App Card Wrapper --- */
+        .app-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            padding: 3rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            width: 95%;
+            max-width: 1200px;
+            height: 80vh;
+            min-height: 550px;
+            position: relative;
+            border: 6px solid #000000;
+        }
+
+        /* --- View Management (State Control) --- */
+        .screen {
+            display: none;
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.4s ease-in-out forwards;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- Global Typography --- */
+        h1 {
+            font-family: var(--font-title);
+            font-weight: 900;
+            text-transform: uppercase;
+            color: #000000;
+            text-shadow: 3px 3px 0px rgba(0,0,0,0.1);
+            text-align: center;
+            margin-bottom: 1.5rem;
+            line-height: 1.1;
+        }
+
+        h2 {
+            font-family: var(--font-title);
+            font-weight: 800;
+            text-transform: uppercase;
+            margin-bottom: 2rem;
+            letter-spacing: 1px;
+        }
+
+        /* --- Form Inputs (Screen I) --- */
+        .form-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+            width: 100%;
+            max-width: 450px;
+            margin-bottom: 2rem;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.4rem;
+        }
+
+        .input-group label {
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: bold;
+        }
+
+        .form-container input {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            border: 3px solid #000000;
+            border-radius: 12px;
+            font-family: var(--font-ui);
+            font-size: 1.3rem;
+            outline: none;
+            background-color: #ffffff;
+            transition: all var(--transition-speed);
+        }
+
+        .form-container input:focus {
+            box-shadow: 0px 5px 0px #000000;
+            transform: translateY(-2px);
+        }
+
+        /* --- Interactive UI Buttons --- */
+        .btn-prime {
+            font-family: var(--font-title);
+            font-weight: 900;
+            background-color: #000000;
+            color: #ffffff;
+            border: none;
+            padding: 1.2rem 3rem;
+            border-radius: 16px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 8px 0 #444444;
+            transition: all 0.1s ease;
+        }
+
+        .btn-prime:hover {
+            transform: translateY(2px);
+            box-shadow: 0 6px 0 #444444;
+        }
+
+        .btn-prime:disabled {
+            background-color: #cccccc;
+            box-shadow: 0 6px 0 #999999;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* --- Header Trackers (Screen II) --- */
+        .game-header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 1.5rem;
+            border-bottom: 4px dashed #000000;
+            margin-bottom: 2rem;
+        }
+
+        .tracker-item {
+            background: #ffffff;
+            border: 3px solid #000000;
+            padding: 0.6rem 1.5rem;
+            border-radius: 12px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 4px 4px 0px #000000;
+        }
+
+        .timer-highlight {
+            background: #FF6F61;
+            color: white;
+            font-family: var(--font-title);
+        }
+
+        /* --- Question Display Core --- */
+        .question-wrapper {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            text-align: center;
+        }
+
+        .question-text {
+            font-size: 3.5rem;
+            color: #000000; /* Strict specification metric */
+            margin-bottom: 2.5rem;
+            font-weight: bold;
+            word-wrap: break-word;
+            max-width: 90%;
+        }
+
+        /* --- Answer Choice Mechanics --- */
+        .choices-layout {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        /* Flexible dynamic column scaling for Type III containing 2 choices */
+        .choices-layout.dual-column {
+            grid-template-columns: repeat(2, 1fr) !important;
+            max-width: 600px;
+        }
+
+        .choice-btn {
+            background-color: #ffffff;
+            border: 4px solid #000000;
+            border-radius: 16px;
+            padding: 1.2rem 2rem;
+            font-family: var(--font-ui);
+            font-size: 1.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.1s ease, background-color 0.2s ease;
+            box-shadow: 0 8px 0 #000000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 80px;
+        }
+
+        .choice-btn:hover:not(:disabled) {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 0 #000000;
+            background-color: #f8f9fa;
+        }
+
+        .choice-btn:active:not(:disabled) {
+            transform: translateY(4px);
+            box-shadow: 0 4px 0 #000000;
+        }
+
+        /* Feedback Status Overrides */
+        .choice-btn.correct-feedback {
+            background-color: #2ECC71 !important;
+            color: #ffffff !important;
+            border-color: #000000 !important;
+        }
+
+        .choice-btn.incorrect-feedback {
+            background-color: #E74C3C !important;
+            color: #ffffff !important;
+            border-color: #000000 !important;
+        }
+
+        /* --- Score Summary Dashboard (Screen III) --- */
+        .summary-dashboard {
+            background: #ffffff;
+            border: 4px solid #000000;
+            border-radius: 20px;
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 550px;
+            box-shadow: 8px 8px 0px #000000;
+            margin-bottom: 2.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px dashed #cccccc;
+            padding-bottom: 0.5rem;
+        }
+
+        .summary-row:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+            margin-top: 1rem;
+        }
+
+        .summary-label {
+            text-transform: uppercase;
+            font-size: 1.1rem;
+            color: #666666;
+        }
+
+        .summary-value {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #000000;
+        }
+
+        .final-score-callout {
+            font-family: var(--font-title);
+            font-size: 2.5rem !important;
+            color: #FF6F61 !important;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <div class="app-card" id="appCard">
+            
+            <div id="screen-welcome" class="screen active">
+                <h1>Vocabulary<br>Challenge</h1>
+                
+                <div class="form-container">
+                    <div class="input-group">
+                        <label for="student-name">Student Name</label>
+                        <input type="text" id="student-name" placeholder="Enter your full name" autocomplete="off">
+                    </div>
+                    <div class="input-group">
+                        <label for="student-number">Student Number</label>
+                        <input type="text" id="student-number" placeholder="Enter your number" autocomplete="off">
+                    </div>
+                    <div class="input-group">
+                        <label for="student-class">Class Room</label>
+                        <input type="text" id="student-class" placeholder="e.g., Class 4A" autocomplete="off">
+                    </div>
+                </div>
+
+                <button id="btn-start" class="btn-prime" disabled>Start Game</button>
+            </div>
+
+            <div id="screen-gameboard" class="screen">
+                <div class="game-header">
+                    <div class="tracker-item">
+                        <span>Q:</span>
+                        <span id="track-qnumber">1/10</span>
+                    </div>
+                    <div class="tracker-item timer-highlight">
+                        <span>⏱️</span>
+                        <span id="track-timer">10:00</span>
+                    </div>
+                    <div class="tracker-item">
+                        <span>Raw Score:</span>
+                        <span id="track-score">0</span>
+                    </div>
+                </div>
+
+                <div class="question-wrapper">
+                    <div class="question-text" id="display-question">Loading Word...</div>
+                    <div class="choices-layout" id="display-choices">
+                        </div>
+                </div>
+            </div>
+
+            <div id="screen-summary" class="screen">
+                <h1>Game Over</h1>
+                
+                <div class="summary-dashboard">
+                    <div class="summary-row">
+                        <span class="summary-label">Name</span>
+                        <span class="summary-value" id="summary-name">-</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Number</span>
+                        <span class="summary-value" id="summary-number">-</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Class</span>
+                        <span class="summary-value" id="summary-class">-</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Correct Base</span>
+                        <span class="summary-value" id="summary-base">0</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Final Total Score (x3)</span>
+                        <span class="summary-value final-score-callout" id="summary-total">0</span>
+                    </div>
+                </div>
+
+                <button id="btn-restart" class="btn-prime">Play Again</button>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // --- Hardcoded Dataset ---
+        const vocabularyData = [
+            { en: "eleven", zh: "十一", emoji: "1️⃣1️⃣" }, { en: "twelve", zh: "十二", emoji: "1️⃣2️⃣" },
+            { en: "thirteen", zh: "十三", emoji: "1️⃣3️⃣" }, { en: "fourteen", zh: "十四", emoji: "1️⃣4️⃣" },
+            { en: "fifteen", zh: "十五", emoji: "1️⃣5️⃣" }, { en: "dad", zh: "爸爸", emoji: "👨" },
+            { en: "mad", zh: "生氣的", emoji: "😡" }, { en: "sad", zh: "傷心的", emoji: "😢" },
+            { en: "cat", zh: "貓", emoji: "🐱" }, { en: "fat", zh: "胖的", emoji: "🐖" },
+            { en: "mat", zh: "墊子", emoji: "🧘" }, { en: "small", zh: "小的", emoji: "🐭" },
+            { en: "big", zh: "大的", emoji: "🐘" }, { en: "dog", zh: "狗", emoji: "🐶" },
+            { en: "bird", zh: "鳥", emoji: "🐦" }, { en: "fish", zh: "魚", emoji: "🐟" },
+            { en: "no", zh: "不", emoji: "❌" }, { en: "not", zh: "不是", emoji: "🙅" },
+            { en: "yes", zh: "是", emoji: "✅" }, { en: "bed", zh: "床", emoji: "🛏️" },
+            { en: "red", zh: "紅色的", emoji: "🔴" }, { en: "Ted", zh: "Ted-男子名", emoji: "👦" },
+            { en: "get", zh: "得到", emoji: "📥" }, { en: "pet", zh: "寵物", emoji: "🐹" },
+            { en: "wet", zh: "濕的", emoji: "🌧️" }, { en: "dance", zh: "跳舞", emoji: "💃" },
+            { en: "draw", zh: "畫畫", emoji: "🎨" }, { en: "jump", zh: "跳", emoji: "🦘" },
+            { en: "read", zh: "閱讀", emoji: "📚" }, { en: "sing", zh: "唱歌", emoji: "🎤" },
+            { en: "swim", zh: "游泳", emoji: "🏊" }, { en: "write", zh: "寫字", emoji: "✍️" },
+            { en: "can", zh: "能；會", emoji: "💪" }, { en: "do", zh: "做", emoji: "🛠️" },
+            { en: "dig", zh: "挖", emoji: "⛏️" }, { en: "pig", zh: "豬", emoji: "🐷" },
+            { en: "kick", zh: "踢", emoji: "⚽" }, { en: "Nick", zh: "Nick-男子名", emoji: "🧑" },
+            { en: "sick", zh: "生病的", emoji: "🤒" }, { en: "grandfather", zh: "爺爺", emoji: "👴" },
+            { en: "grandmother", zh: "奶奶", emoji: "👵" }, { en: "father", zh: "爸爸", emoji: "👨" },
+            { en: "mother", zh: "媽媽", emoji: "👩" }, { en: "brother", zh: "哥哥；弟弟", emoji: "👦" },
+            { en: "sister", zh: "姐姐；妹妹", emoji: "👧" }, { en: "tall", zh: "高的", emoji: "🦒" },
+            { en: "short", zh: "矮的", emoji: "🦔" }, { en: "who", zh: "誰", emoji: "❓" },
+            { en: "he", zh: "他", emoji: "👨" }, { en: "she", zh: "她", emoji: "👩" },
+            { en: "hop", zh: "單腳跳", emoji: "🦘" }, { en: "mop", zh: "拖；擦", emoji: "🧹" },
+            { en: "top", zh: "陀螺", emoji: "🪀" }, { en: "dot", zh: "圓點", emoji: "⚫" },
+            { en: "hot", zh: "熱的", emoji: "🔥" }, { en: "pot", zh: "鍋子", emoji: "🍲" },
+            { en: "student", zh: "學生", emoji: "🎒" }, { en: "teacher", zh: "教師", emoji: "🧑‍🏫" },
+            { en: "doctor", zh: "醫生", emoji: "🥼" }, { en: "nurse", zh: "護理師", emoji: "🩺" },
+            { en: "cook", zh: "廚師", emoji: "🍳" }, { en: "driver", zh: "司機", emoji: "🚌" },
+            { en: "cub", zh: "幼獸", emoji: "🦁" }, { en: "sub", zh: "潛水艇", emoji: "🤿" },
+            { en: "tub", zh: "浴缸", emoji: "🛁" }, { en: "cut", zh: "切；剪", emoji: "✂️" },
+            { en: "hut", zh: "小屋", emoji: "🛖" }, { en: "nut", zh: "堅果", emoji: "🥜" },
+            { en: "card", zh: "卡片", emoji: "🃏" }, { en: "flower", zh: "花", emoji: "🌸" },
+            { en: "gift", zh: "禮物", emoji: "🎁" }, { en: "heart", zh: "心", emoji: "❤️" },
+            { en: "love", zh: "愛", emoji: "💖" }
+        ];
+
+        // --- Dynamic Colors Hex Array ---
+        const backgroundPalette = ['#FF6F61', '#F7CAC9', '#92A8D1', '#88B04B', '#F9C74F'];
+
+        // --- Game Engine Variables ---
+        let processedQuestions = [];
+        let currentQuestionIndex = 0;
+        let rawCorrectScore = 0;
+        let countdownInterval = null;
+        let totalTimeSeconds = 600; // 10 minutes tracking metric
+
+        // --- DOM Selectors ---
+        const loginInputs = [
+            document.getElementById('student-name'),
+            document.getElementById('student-number'),
+            document.getElementById('student-class')
+        ];
+        const btnStart = document.getElementById('btn-start');
+        const btnRestart = document.getElementById('btn-restart');
+        
+        const screenWelcome = document.getElementById('screen-welcome');
+        const screenGameboard = document.getElementById('screen-gameboard');
+        const screenSummary = document.getElementById('screen-summary');
+        
+        const txtQuestion = document.getElementById('display-question');
+        const containerChoices = document.getElementById('display-choices');
+        
+        const trackQNumber = document.getElementById('track-qnumber');
+        const trackTimer = document.getElementById('track-timer');
+        const trackScore = document.getElementById('track-score');
+
+        // --- Initialize Engine Listeners ---
+        loginInputs.forEach(input => input.addEventListener('input', checkFormValidation));
+        btnStart.addEventListener('click', startGameSession);
+        btnRestart.addEventListener('click', resetToWelcomeScreen);
+
+        // --- Form Validation Optimization ---
+        function checkFormValidation() {
+            const allFilled = loginInputs.every(input => input.value.trim() !== "");
+            btnStart.disabled = !allFilled;
+        }
+
+        // --- Global Randomizer Utility ---
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function updateRandomBackground() {
+            const chosenColor = backgroundPalette[Math.floor(Math.random() * backgroundPalette.length)];
+            document.documentElement.style.setProperty('--current-bg', chosenColor);
+        }
+
+        // --- Core Quiz Generation Core ---
+        function setupQuestionBank() {
+            let pool = [...vocabularyData];
+            shuffleArray(pool);
+
+            processedQuestions = pool.map((item) => {
+                // Randomly determine Question Styles (Type I, Type II-A, Type II-B, Type III)
+                const types = ['LETTER', 'TRANS_EN_ZH', 'TRANS_ZH_EN', 'EMOJI'];
+                const selectedType = types[Math.floor(Math.random() * types.length)];
+                
+                let promptString = "";
+                let correctSolution = "";
+                let optionChoices = [];
+
+                if (selectedType === 'LETTER') {
+                    // Type I: Fill in the missing letter
+                    let word = item.en;
+                    let randIndex = Math.floor(Math.random() * word.length);
+                    // Avoid picking a space context if word has secondary punctuation/gaps
+                    while(word[randIndex] === ' ' || word[randIndex] === '/' || word[randIndex] === '-') {
+                        randIndex = Math.floor(Math.random() * word.length);
+                    }
+                    correctSolution = word[randIndex].toLowerCase();
+                    
+                    let hiddenWord = word.substring(0, randIndex) + " _ " + word.substring(randIndex + 1);
+                    promptString = `${hiddenWord}\n(${item.zh})`;
+
+                    // Generate Distractors (Random alphabetical letters)
+                    let lettersPool = 'abcdefghijklmnopqrstuvwxyz'.split('').filter(l => l !== correctSolution);
+                    shuffleArray(lettersPool);
+                    optionChoices = [correctSolution, lettersPool[0], lettersPool[1]];
+                    
+                } else if (selectedType === 'TRANS_EN_ZH') {
+                    // Type II Variation A: English to Chinese Translation
+                    promptString = item.en;
+                    correctSolution = item.zh;
+                    
+                    let distractors = vocabularyData.filter(v => v.zh !== correctSolution);
+                    shuffleArray(distractors);
+                    optionChoices = [correctSolution, distractors[0].zh, distractors[1].zh];
+
+                } else if (selectedType === 'TRANS_ZH_EN') {
+                    // Type II Variation B: Chinese to English Translation
+                    promptString = item.zh;
+                    correctSolution = item.en;
+                    
+                    let distractors = vocabularyData.filter(v => v.en !== correctSolution);
+                    shuffleArray(distractors);
+                    optionChoices = [correctSolution, distractors[0].en, distractors[1].en];
+
+                } else if (selectedType === 'EMOJI') {
+                    // Type III: Guess the Emoji
+                    promptString = item.emoji;
+                    correctSolution = item.en;
+                    
+                    let distractors = vocabularyData.filter(v => v.en !== correctSolution);
+                    shuffleArray(distractors);
+                    // Dynamic Requirements: Type 3 explicitly dictates 2 choices
+                    optionChoices = [correctSolution, distractors[0].en];
+                }
+
+                shuffleArray(optionChoices);
+
+                return {
+                    type: selectedType,
+                    prompt: promptString,
+                    answer: correctSolution,
+                    choices: optionChoices
+                };
+            });
+        }
+
+        // --- State Navigation Functions ---
+        function startGameSession() {
+            setupQuestionBank();
+            currentQuestionIndex = 0;
+            rawCorrectScore = 0;
+            totalTimeSeconds = 600;
+
+            trackScore.textContent = rawCorrectScore;
+            
+            // Render view states
+            screenWelcome.classList.remove('active');
+            screenGameboard.classList.add('active');
+
+            startGlobalTimer();
+            loadNextChallengeQuestion();
+        }
+
+        function loadNextChallengeQuestion() {
+            if (currentQuestionIndex >= processedQuestions.length) {
+                concludeGameSession();
+                return;
+            }
+
+            updateRandomBackground();
+            
+            const currentItem = processedQuestions[currentQuestionIndex];
+            trackQNumber.textContent = `${currentQuestionIndex + 1}/${processedQuestions.length}`;
+            txtQuestion.textContent = currentItem.prompt;
+            
+            containerChoices.innerHTML = "";
+            
+            // Adjust layouts adaptively based on choices lengths (Spec requirement compliance)
+            if(currentItem.choices.length === 2) {
+                containerChoices.classList.add('dual-column');
+            } else {
+                containerChoices.classList.remove('dual-column');
+            }
+
+            currentItem.choices.forEach(option => {
+                const button = document.createElement('button');
+                button.className = 'choice-btn';
+                button.textContent = option;
+                button.addEventListener('click', () => evaluateSelectedAnswer(button, option, currentItem.answer));
+                containerChoices.appendChild(button);
+            });
+        }
+
+        function evaluateSelectedAnswer(selectedButton, chosenValue, canonicalAnswer) {
+            // Freeze user choice selection actions instantly
+            const allButtons = containerChoices.querySelectorAll('.choice-btn');
+            allButtons.forEach(btn => btn.disabled = true);
+
+            if (chosenValue === canonicalAnswer) {
+                selectedButton.classList.add('correct-feedback');
+                rawCorrectScore++;
+                trackScore.textContent = rawCorrectScore;
+            } else {
+                selectedButton.classList.add('incorrect-feedback');
+                // Highlight the correct answer for interactive clarity
+                allButtons.forEach(btn => {
+                    if (btn.textContent === canonicalAnswer) {
+                        btn.classList.add('correct-feedback');
+                    }
+                });
+            }
+
+            // Continuous execution delay cycle: 1 second interval timeout
+            setTimeout(() => {
+                currentQuestionIndex++;
+                loadNextChallengeQuestion();
+            }, 1000);
+        }
+
+        // --- Countdown Clock Interfacing ---
+        function startGlobalTimer() {
+            clearInterval(countdownInterval);
+            renderTimerText();
+            
+            countdownInterval = setInterval(() => {
+                totalTimeSeconds--;
+                renderTimerText();
+
+                if (totalTimeSeconds <= 0) {
+                    clearInterval(countdownInterval);
+                    concludeGameSession();
+                }
+            }, 1000);
+        }
+
+        function renderTimerText() {
+            const minutes = Math.floor(totalTimeSeconds / 60);
+            const seconds = totalTimeSeconds % 60;
+            const displayMin = minutes < 10 ? '0' + minutes : minutes;
+            const displaySec = seconds < 10 ? '0' + seconds : seconds;
+            trackTimer.textContent = `${displayMin}:${displaySec}`;
+        }
+
+        // --- Session Termination & Compilation ---
+        function concludeGameSession() {
+            clearInterval(countdownInterval);
+            
+            // Map student input cards
+            document.getElementById('summary-name').textContent = loginInputs[0].value;
+            document.getElementById('summary-number').textContent = loginInputs[1].value;
+            document.getElementById('summary-class').textContent = loginInputs[2].value;
+            
+            document.getElementById('summary-base').textContent = rawCorrectScore;
+            // Formula calculation metric application: Correct Answers x 3
+            document.getElementById('summary-total').textContent = rawCorrectScore * 3;
+
+            screenGameboard.classList.remove('active');
+            screenSummary.classList.add('active');
+        }
+
+        function resetToWelcomeScreen() {
+            loginInputs.forEach(input => input.value = "");
+            btnStart.disabled = true;
+            
+            screenSummary.classList.remove('active');
+            screenWelcome.classList.add('active');
+            document.documentElement.style.setProperty('--current-bg', '#92A8D1');
+        }
+    </script>
+</body>
+</html>
