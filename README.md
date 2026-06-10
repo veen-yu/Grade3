@@ -479,7 +479,7 @@
         let currentQuestionIndex = 0;
         let rawCorrectScore = 0;
         let countdownInterval = null;
-        let totalTimeSeconds = 600; // 10 minutes tracking metric
+        let totalTimeSeconds = 600; // 8 minutes tracking metric
 
         // --- DOM Selectors ---
         const loginInputs = [
